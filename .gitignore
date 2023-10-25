@@ -1,0 +1,9 @@
+# Dependencies
+node_modules/
+
+# Mac Finder
+.DS_Store
+
+# Private
+key.json
+spreadsheetIds.txt
