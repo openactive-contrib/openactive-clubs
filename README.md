@@ -7,7 +7,7 @@ This tool reads a number of Google Sheets and converts them into a single OpenAc
 ## Usage
 
 ### Club owners
-- Download the [Club-Finder-Template.xlsx](./Club-Finder-Template.xlsx) Excel file to your local machine, then upload it to your Google account
+- Download the [OpenActive-Club-Finder-Template.xlsx](./OpenActive-Club-Finder-Template.xlsx) Excel file to your local machine, then upload it to your Google account
 - Open the Excel file in the browser via G-Suite, then go to "File > Save as Google Sheets"
 - Delete the Excel file
 - Open the Google Sheets file, then in the top right click "Share"
@@ -16,7 +16,7 @@ This tool reads a number of Google Sheets and converts them into a single OpenAc
   - Uncheck "Notify people"
   - Click "Share"
 - For a file called "https://docs.google.com/spreadsheets/d/1iK96_tAem8H8LjPMYHdBDWcUpyKtCYOgVVXaQanDY1o/edit#gid=835570708", the file ID is "1iK96_tAem8H8LjPMYHdBDWcUpyKtCYOgVVXaQanDY1o". Determine your file ID and send it to hello@openactive.io.
-- Fill in the file with your club information. See [Club-Finder-Example.xlsx](./Club-Finder-Example.xlsx) for help.
+- Fill in the file with your club information. See [OpenActive-Club-Finder-Example.xlsx](./OpenActive-Club-Finder-Example.xlsx) for help.
 
 ### Service owner
 - Copy all except the Excel files from this repo to your server
