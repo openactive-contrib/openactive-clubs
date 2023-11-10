@@ -8,9 +8,6 @@ const readline = require('readline');
 const app = express();
 const port = 8080;
 
-const numHeaderRows = 3;
-const numHeaderCols = 1;
-
 // -------------------------------------------------------------------------------------------------
 
 app.use(express.json());
@@ -31,37 +28,20 @@ app.get('/clubs', async (req, res) => {
   };
 
   for (const spreadsheetId of spreadsheetIds) {
+    const clubs = await setSheet(sheets, spreadsheetId, 'clubs');
+    const organizers = await setSheet(sheets, spreadsheetId, 'organizers');
+    const locations = await setSheet(sheets, spreadsheetId, 'locations');
+    const addresses = await setSheet(sheets, spreadsheetId, 'addresses');
+    const images = await setSheet(sheets, spreadsheetId, 'images');
+    const amenityFeatures = await setSheet(sheets, spreadsheetId, 'amenity features');
 
-    let clubs = {
-      sheet: await setSheet(sheets, spreadsheetId, 'clubs'),
-    };
-    let organizers = {
-      sheet: await setSheet(sheets, spreadsheetId, 'organizers'),
-    };
-    organizers.codes = setCodesSheet(organizers.sheet);
-    let locations = {
-      sheet: await setSheet(sheets, spreadsheetId, 'locations'),
-    };
-    locations.codes = setCodesSheet(locations.sheet);
-    let addresses = {
-      sheet: await setSheet(sheets, spreadsheetId, 'addresses'),
-    };
-    addresses.codes = setCodesSheet(addresses.sheet);
-    let images = {
-      sheet: await setSheet(sheets, spreadsheetId, 'images'),
-    };
-    images.codes = setCodesSheet(images.sheet);
-    let amenityFeatures = {
-      sheet: await setSheet(sheets, spreadsheetId, 'amenity features'),
-    };
-    amenityFeatures.codes = setCodesSheet(amenityFeatures.sheet);
-
-    for (const club of clubs.sheet.slice(numHeaderRows)) {
-      const codeOrganizersClub = setCodesCell(club[0])[0];
+    for (const clubData of clubs.data) {
+      const club = setObject(clubs.headers, clubData);
+      const codeOrganizersClub = setCodes(club.organizer)[0];
       const rowOrganizersClub = codeOrganizersClub ? organizers.codes.indexOf(codeOrganizersClub) : -1;
 
       if (rowOrganizersClub != -1) {
-        const codesLocationsClub = setCodesCell(club[1]);
+        const codesLocationsClub = setCodes(club.location);
         const rowsLocationsClub = codesLocationsClub.map(codeLocationsClub => locations.codes.indexOf(codeLocationsClub)).filter(row => row != -1);
 
         if (rowsLocationsClub.length > 0) {
@@ -71,6 +51,7 @@ app.get('/clubs', async (req, res) => {
             images,
             addresses
           );
+
           if (organizer) {
             for (const rowLocationsClub of rowsLocationsClub) {
               const location = setLocation(
@@ -80,6 +61,7 @@ app.get('/clubs', async (req, res) => {
                 addresses,
                 amenityFeatures
               );
+
               if (location) {
                 output.items.push({
                   id: '', // string, e.g. '031CLHC23001021'
@@ -144,23 +126,23 @@ async function getAuthSheets() {
 // -------------------------------------------------------------------------------------------------
 
 async function setSheet(sheets, spreadsheetId, name) {
+  const numHeaderCols = 1;
+  const numHeaderRows = 3;
   const sheet = await sheets.spreadsheets.values.get({
     spreadsheetId: spreadsheetId,
     range: name,
   });
-  return sheet.data.values;
+  return {
+    headers: sheet.data.values[0].slice(numHeaderCols),
+    codes: sheet.data.values.slice(numHeaderRows).map(row => setCodes(row[0])[0]),
+    data: sheet.data.values.slice(numHeaderRows).map(row => row.slice(numHeaderCols)),
+  };
 }
 
 // -------------------------------------------------------------------------------------------------
 
-function setCodesSheet(sheet) {
-  return sheet.slice(numHeaderRows).map(row => setCodesCell(row[0])[0]);
-}
-
-// -------------------------------------------------------------------------------------------------
-
-function setCodesCell(cell) {
-  return String(cell).split(',').map(code => code.trim()).filter(code => code);
+function setCodes(codes) {
+  return String(codes).split(',').map(code => code.trim()).filter(code => code);
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -204,17 +186,14 @@ function setObject(keys, values) {
 // Not yet included in this project:
 //   'thumbnail' // Optional, [ImageObject]
 
-function setProperty(sheet, codes, codesToFind, objectType, outputType) {
+function setProperty(sheet, codesToFind, objectType, outputType) {
 
   let items = [];
 
   for (const codeToFind of codesToFind) {
-    const row = codes.indexOf(codeToFind);
+    const row = sheet.codes.indexOf(codeToFind);
     if (row != -1) {
-      let item = setObject(
-        sheet[0].slice(numHeaderCols),
-        sheet[numHeaderRows + row].slice(numHeaderCols)
-      );
+      let item = setObject(sheet.headers, sheet.data[row]);
       if (item) {
         if (objectType == 'LocationFeatureSpecification') {
           Object.assign(item, {'value': true})
@@ -236,6 +215,7 @@ function setProperty(sheet, codes, codesToFind, objectType, outputType) {
   else {
     return null;
   }
+
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -267,8 +247,8 @@ function setProperty(sheet, codes, codesToFind, objectType, outputType) {
 function setOrganizer(rowOrganizersClub, organizers, images, addresses) {
 
   let organizer = setObject(
-    organizers.sheet[0].slice(numHeaderCols),
-    organizers.sheet[numHeaderRows + rowOrganizersClub].slice(numHeaderCols)
+    organizers.headers,
+    organizers.data[rowOrganizersClub]
   );
 
   if (organizer) {
@@ -280,15 +260,15 @@ function setOrganizer(rowOrganizersClub, organizers, images, addresses) {
         organizer.sameAs = String(organizer.sameAs).split(',').map(url => url.trim()).filter(url => url);
       }
       else if (key == 'logo') {
-        const codesImagesOrganizer = setCodesCell(organizer.logo);
-        organizer.logo = codesImagesOrganizer.length > 0 ? setProperty(images.sheet, images.codes, [codesImagesOrganizer[0]], 'ImageObject', 'object') : null;
+        const codesImagesOrganizer = setCodes(organizer.logo);
+        organizer.logo = codesImagesOrganizer.length > 0 ? setProperty(images, [codesImagesOrganizer[0]], 'ImageObject', 'object') : null;
         if (!organizer.logo) {
           delete organizer.logo;
         }
       }
       else if (key == 'address') {
-        const codesAddressesOrganizer = setCodesCell(organizer.address);
-        organizer.address = codesAddressesOrganizer.length > 0 ? setProperty(addresses.sheet, addresses.codes, [codesAddressesOrganizer[0]], 'PostalAddress', 'object') : null;
+        const codesAddressesOrganizer = setCodes(organizer.address);
+        organizer.address = codesAddressesOrganizer.length > 0 ? setProperty(addresses, [codesAddressesOrganizer[0]], 'PostalAddress', 'object') : null;
         if (!organizer.address) {
           delete organizer.address;
         }
@@ -341,8 +321,8 @@ function setOrganizer(rowOrganizersClub, organizers, images, addresses) {
 function setLocation(rowLocationsClub, locations, images, addresses, amenityFeatures) {
 
   let location = setObject(
-    locations.sheet[0].slice(numHeaderCols),
-    locations.sheet[numHeaderRows + rowLocationsClub].slice(numHeaderCols)
+    locations.headers,
+    locations.data[rowLocationsClub]
   );
 
   if (location) {
@@ -351,15 +331,15 @@ function setLocation(rowLocationsClub, locations, images, addresses, amenityFeat
         delete location[key];
       }
       else if (key == 'image') {
-        const codesImagesLocation = setCodesCell(location.image);
-        location.image = codesImagesLocation.length > 0 ? setProperty(images.sheet, images.codes, codesImagesLocation, 'ImageObject', 'array') : null;
+        const codesImagesLocation = setCodes(location.image);
+        location.image = codesImagesLocation.length > 0 ? setProperty(images, codesImagesLocation, 'ImageObject', 'array') : null;
         if (!location.image) {
           delete location.image;
         }
       }
       else if (key == 'address') {
-        const codesAddressesLocation = setCodesCell(location.address);
-        location.address = codesAddressesLocation.length > 0 ? setProperty(addresses.sheet, addresses.codes, [codesAddressesLocation[0]], 'PostalAddress', 'object') : null;
+        const codesAddressesLocation = setCodes(location.address);
+        location.address = codesAddressesLocation.length > 0 ? setProperty(addresses, [codesAddressesLocation[0]], 'PostalAddress', 'object') : null;
         if (!location.address) {
           delete location.address;
         }
@@ -383,8 +363,8 @@ function setLocation(rowLocationsClub, locations, images, addresses, amenityFeat
         }
       }
       else if (key == 'amenityFeature') {
-        const codesAmenityFeaturesLocation = setCodesCell(location.amenityFeature);
-        location.amenityFeature = codesAmenityFeaturesLocation.length > 0 ? setProperty(amenityFeatures.sheet, amenityFeatures.codes, codesAmenityFeaturesLocation, 'LocationFeatureSpecification', 'array') : null;
+        const codesAmenityFeaturesLocation = setCodes(location.amenityFeature);
+        location.amenityFeature = codesAmenityFeaturesLocation.length > 0 ? setProperty(amenityFeatures, codesAmenityFeaturesLocation, 'LocationFeatureSpecification', 'array') : null;
         if (!location.amenityFeature) {
           delete location.amenityFeature;
         }

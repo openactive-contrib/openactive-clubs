@@ -1,14 +1,14 @@
 {
   "name": "openactive-club-finder",
   "version": "1.0.0",
-  "description": "",
+  "description": "This tool reads a number of Google Sheets and converts them into a single OpenActive JSON feed. Organizer and location info only.",
   "main": "index.js",
   "scripts": {
+    "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "Darren Temple (https://github.com/reikyo)",
+  "license": "MIT",
   "dependencies": {
     "express": "^4.18.2",
     "googleapis": "^127.0.0"
