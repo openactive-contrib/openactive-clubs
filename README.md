@@ -20,10 +20,10 @@ This tool reads a number of Google Sheets and converts them into a single OpenAc
 
 ### Service owner
 - Copy all except the Excel files from this repo to your server
-- Make a file called "spreadsheetIds.txt" in the same directory as "index.js"
+- Make a file called "spreadsheetIDs.txt" in the same directory as "index.js"
 - Put the spreadsheet IDs sent from club owners in this file, one per line, no commas or other furniture
 - Contact the code owner to obtain the "key.json" file
 - Upload the "key.json" file to the same server directory as "index.js". This authenticates the service as the email address that club owners share their files with. This email address is owned by the ODI Google account, which is the root of the Google Sheets API functionality used herein.
 - Start the service via `node index.js`
 - See the collated spreadsheet info as a single JSON feed at `http://<ADDRESS>/clubs`
-- If the contents of "spreadsheetIds.txt" is updated, then the service will need to be restarted to produce the updated feed
+- If the contents of "spreadsheetIDs.txt" is updated, then the service will need to be restarted to produce the updated feed

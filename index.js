@@ -13,7 +13,7 @@ const port = 8080;
 app.use(express.json());
 app.listen(port, async () => {
   console.log(`Server running on port ${port}`);
-  await getSpreadsheetIds();
+  await getSpreadsheetIDs();
 });
 
 // -------------------------------------------------------------------------------------------------
@@ -27,13 +27,13 @@ app.get('/clubs', async (req, res) => {
     items: [],
   };
 
-  for (const spreadsheetId of spreadsheetIds) {
-    const clubs = await setSheet(sheets, spreadsheetId, 'clubs');
-    const organizers = await setSheet(sheets, spreadsheetId, 'organizers');
-    const locations = await setSheet(sheets, spreadsheetId, 'locations');
-    const addresses = await setSheet(sheets, spreadsheetId, 'addresses');
-    const images = await setSheet(sheets, spreadsheetId, 'images');
-    const amenityFeatures = await setSheet(sheets, spreadsheetId, 'amenity features');
+  for (const spreadsheetID of spreadsheetIDs) {
+    const clubs = await setSheet(sheets, spreadsheetID, 'clubs');
+    const organizers = await setSheet(sheets, spreadsheetID, 'organizers');
+    const locations = await setSheet(sheets, spreadsheetID, 'locations');
+    const addresses = await setSheet(sheets, spreadsheetID, 'addresses');
+    const images = await setSheet(sheets, spreadsheetID, 'images');
+    const amenityFeatures = await setSheet(sheets, spreadsheetID, 'amenity features');
 
     for (const clubData of clubs.data) {
       const club = setObject(clubs.headers, clubData);
@@ -94,13 +94,13 @@ app.get('/clubs', async (req, res) => {
 
 // -------------------------------------------------------------------------------------------------
 
-let spreadsheetIds = [];
-async function getSpreadsheetIds() {
+let spreadsheetIDs = [];
+async function getSpreadsheetIDs() {
   const rl = await readline.createInterface({
-    input: fs.createReadStream('spreadsheetIds.txt'),
+    input: fs.createReadStream('spreadsheetIDs.txt'),
   });
   rl.on('line', (line) => {
-    spreadsheetIds.push(line);
+    spreadsheetIDs.push(line);
   });
 }
 
@@ -125,11 +125,11 @@ async function getAuthSheets() {
 
 // -------------------------------------------------------------------------------------------------
 
-async function setSheet(sheets, spreadsheetId, name) {
+async function setSheet(sheets, spreadsheetID, name) {
   const numHeaderCols = 1;
   const numHeaderRows = 3;
   const sheet = await sheets.spreadsheets.values.get({
-    spreadsheetId: spreadsheetId,
+    spreadsheetId: spreadsheetID,
     range: name,
   });
   return {
