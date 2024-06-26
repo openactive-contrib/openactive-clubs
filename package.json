@@ -1,5 +1,5 @@
 {
-  "name": "openactive-club-finder",
+  "name": "openactive-clubs",
   "version": "1.0.0",
   "description": "This tool reads a number of Google Sheets and converts them into a single OpenActive JSON feed. Organizer and location info only.",
   "main": "index.js",

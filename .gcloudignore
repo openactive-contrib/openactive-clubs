@@ -1,0 +1,8 @@
+.git/
+.gcloudignore
+.gitignore
+LICENSE.md
+OpenActive-Clubs-Example.xlsx
+OpenActive-Clubs-Template.xlsx
+README.md
+#!include:.gitignore

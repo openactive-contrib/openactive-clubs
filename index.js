@@ -18,11 +18,11 @@ app.listen(port, async () => {
 
 // -------------------------------------------------------------------------------------------------
 
-app.get('/clubs', async (req, res) => {
+app.get('/', async (req, res) => {
   const { sheets } = await getAuthSheets();
 
   let output = {
-    next: '',
+    next: `https://${req.hostname}/last`,
     license: 'https://creativecommons.org/licenses/by/4.0/',
     items: [],
   };
@@ -63,19 +63,20 @@ app.get('/clubs', async (req, res) => {
               );
 
               if (location) {
+                let itemID = spreadsheetID + '-' + codeOrganizersClub + '-' + locations.codes[rowLocationsClub];
                 output.items.push({
-                  id: '', // string, e.g. '031CLHC23001021'
-                  kind: 'FacilityUse', // string, e.g. 'FacilityUse'
+                  id: itemID, // string, e.g. '031CLHC23001021'
+                  kind: 'Club', // string, e.g. 'FacilityUse'
                   state: 'updated', // string, e.g. 'updated'
-                  modified: '', // string
+                  modified: Date.now(), // string
                   data: {
                     '@context': [
                       'https://openactive.io/',
                       'https://openactive.io/ns-beta',
                     ],
-                    id: '', // string, e.g. 'https://booking.1life.co.uk/OpenActive/api/session-series/031CLHC23001021'
-                    identifier: '', // string, e.g. '031CLHC23001021', same as parent level 'id'
-                    type: 'FacilityUse', // string, e.g. 'FacilityUse'
+                    '@type': 'Club', // string, e.g. 'FacilityUse'
+                    '@id': `https://${req.hostname}/${itemID}`, // string, e.g. 'https://booking.1life.co.uk/OpenActive/api/session-series/031CLHC23001021'
+                    identifier: itemID, // string, e.g. '031CLHC23001021', same as parent level 'id'
                     name: '', // string, e.g. 'Junior Gym'
                     organizer: organizer, // Organization
                     location: location, // Place
@@ -94,10 +95,22 @@ app.get('/clubs', async (req, res) => {
 
 // -------------------------------------------------------------------------------------------------
 
+app.get('/last', async (req, res) => {
+  let output = {
+    next: `https://${req.hostname}/last`,
+    license: 'https://creativecommons.org/licenses/by/4.0/',
+    items: [],
+  };
+
+  res.send(output);
+});
+
+// -------------------------------------------------------------------------------------------------
+
 let spreadsheetIDs = [];
 async function getSpreadsheetIDs() {
   const rl = await readline.createInterface({
-    input: fs.createReadStream('spreadsheetIDs.txt'),
+    input: fs.createReadStream(process.env.RELATIVE_FILEPATH_SPREADSHEET_IDS),
   });
   rl.on('line', (line) => {
     spreadsheetIDs.push(line);
@@ -108,7 +121,7 @@ async function getSpreadsheetIDs() {
 
 async function getAuthSheets() {
   const auth = new google.auth.GoogleAuth({
-    keyFile: 'key.json',
+    keyFile: process.env.RELATIVE_FILEPATH_KEY,
     scopes: ['https://www.googleapis.com/auth/spreadsheets'],
   });
   const authClient = await auth.getClient();

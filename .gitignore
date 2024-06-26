@@ -6,4 +6,4 @@ node_modules/
 
 # Private
 key.json
-spreadsheetIDs.txt
+spreadsheet-ids.txt
