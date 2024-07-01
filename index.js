@@ -139,16 +139,16 @@ async function getAuthSheets() {
 // -------------------------------------------------------------------------------------------------
 
 async function setSheet(sheets, spreadsheetID, name) {
-  const numHeaderCols = 1;
-  const numHeaderRows = 3;
+  const numHeaderCols = 1; // Not including the 'code' column
+  const numHeaderRows = 4;
   const sheet = await sheets.spreadsheets.values.get({
     spreadsheetId: spreadsheetID,
     range: name,
   });
   return {
-    headers: sheet.data.values[0].slice(numHeaderCols),
-    codes: sheet.data.values.slice(numHeaderRows).map(row => setCodes(row[0])[0]),
-    data: sheet.data.values.slice(numHeaderRows).map(row => row.slice(numHeaderCols)),
+    headers: sheet.data.values[0].slice(numHeaderCols + 1),
+    codes: sheet.data.values.slice(numHeaderRows).map(row => setCodes(row.slice(numHeaderCols)[0])[0]),
+    data: sheet.data.values.slice(numHeaderRows).map(row => row.slice(numHeaderCols + 1)),
   };
 }
 
