@@ -1,0 +1,4 @@
+node_modules/
+virt/
+.DS_Store
+.gcloudignore

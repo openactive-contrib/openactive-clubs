@@ -1,9 +1,9 @@
 # Dependencies
 node_modules/
+virt/
 
 # Mac Finder
 .DS_Store
 
 # Private
-key.json
-spreadsheet-ids.txt
+volume-1/
