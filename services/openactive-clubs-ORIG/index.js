@@ -110,7 +110,7 @@ app.get('/last', async (req, res) => {
 let spreadsheetIDs = [];
 async function getSpreadsheetIDs() {
   const rl = await readline.createInterface({
-    input: fs.createReadStream(process.env.RELATIVE_FILEPATH_SPREADSHEET_IDS),
+    input: fs.createReadStream(process.env.RELATIVE_FILEPATH_SPREADSHEET_IDS + '/' + process.env.FILENAME_SPREADSHEET_IDS),
   });
   rl.on('line', (line) => {
     spreadsheetIDs.push(line);
@@ -121,7 +121,7 @@ async function getSpreadsheetIDs() {
 
 async function getAuthSheets() {
   const auth = new google.auth.GoogleAuth({
-    keyFile: process.env.RELATIVE_FILEPATH_KEY,
+    keyFile: process.env.RELATIVE_FILEPATH_KEY + '/' + process.env.FILENAME_KEY,
     scopes: ['https://www.googleapis.com/auth/spreadsheets'],
   });
   const authClient = await auth.getClient();
