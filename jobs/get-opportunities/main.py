@@ -86,7 +86,7 @@ def main():
             # --------------------------------------------------------------------------------------------------
 
             for row in values[1:]:
-                club = {key: val for (key, val) in zip(headers, row)}
+                club = {key: clean_string(val) for (key, val) in zip(headers, row)}
 
                 if (club.get('Verified', 'no').lower().strip() == 'yes'):
                     timestamp = sub('/|:', ' ', club['Timestamp']).split()
@@ -105,91 +105,6 @@ def main():
                             'type': 'Club',
                             '@id': f'{URL_ID_BASE}/{item_id}',
                             'identifier': item_id,
-                            'name': clean_string(club.get('Club name')),
-                            'description': clean_string(club.get('Club description')),
-                            'url': clean_string(club.get('Club main URL')),
-                            'image': [
-                                {
-                                    '@type': 'ImageObject',
-                                    'url': image_url,
-                                    # 'width': 0,
-                                    # 'height': 0,
-                                }
-                                for image_url in list_from_string(club.get('Club image URLs'), '\n')
-                            ],
-                            'location': {
-                                '@type': 'Place',
-                                '@id': f'{URL_ID_BASE}/{item_id}-loc',
-                                'identifier': f'{item_id}-loc',
-                                'name': clean_string(club.get('Location common name')),
-                                'description': clean_string(club.get('Location description')),
-                                'telephone': clean_string(club.get('Location telephone')),
-                                'email': clean_string(club.get('Location email')),
-                                'url': clean_string(club.get('Location main URL')),
-                                'image': [
-                                    {
-                                        '@type': 'ImageObject',
-                                        'url': image_url,
-                                        # 'width': 0,
-                                        # 'height': 0,
-                                    }
-                                    for image_url in list_from_string(club.get('Location image URLs'), '\n')
-                                ],
-                                'amenityFeature': [
-                                    {
-                                        '@type': 'LocationFeatureSpecification',
-                                        'name': amenity_feature,
-                                        'value': True,
-                                    }
-                                    for amenity_feature in list_from_string(club.get('Location amenity features'), '\n')
-                                ],
-                                'address': {
-                                    '@type': 'PostalAddress',
-                                    'streetAddress': clean_string(club.get('Location street address')),
-                                    'addressLocality': clean_string(club.get('Location locality')),
-                                    'addressRegion': clean_string(club.get('Location region')),
-                                    'addressCountry': 'GB',
-                                    'postalCode': clean_string(club.get('Location post code')),
-                                },
-                                'geo': {
-                                    '@type': 'GeoCoordinates',
-                                    'latitude': round(float(club.get('Location latitude')), NUM_DECIMAL_PLACES_COORDS) if club.get('Location latitude') else None,
-                                    'longitude': round(float(club.get('Location longitude')), NUM_DECIMAL_PLACES_COORDS) if club.get('Location longitude') else None,
-                                },
-                            },
-                            'organizer': {
-                                '@type': 'Organization',
-                                '@id': f'{URL_ID_BASE}/{item_id}-org',
-                                'identifier': f'{item_id}-org',
-                                'name': clean_string(club.get('Organiser common name')),
-                                'legalName': clean_string(club.get('Organiser legal name')),
-                                'description': clean_string(club.get('Organiser description')),
-                                'telephone': clean_string(club.get('Organiser telephone')),
-                                'email': clean_string(club.get('Organiser email')),
-                                'url': clean_string(club.get('Organiser main URL')),
-                                'sameAs': list_from_string(club.get('Organiser social media URLs'), '\n'),
-                                'logo': {
-                                    '@type': 'ImageObject',
-                                    'url': clean_string(club.get('Organiser logo URL')),
-                                    # 'width': 0,
-                                    # 'height': 0,
-                                } if clean_string(club.get('Organiser logo URL')) else {},
-                                'address': {
-                                    '@type': 'PostalAddress',
-                                    'streetAddress': clean_string(club.get('Location street address')),
-                                    'addressLocality': clean_string(club.get('Location locality')),
-                                    'addressRegion': clean_string(club.get('Location region')),
-                                    'addressCountry': 'GB',
-                                    'postalCode': clean_string(club.get('Location post code')),
-                                } if (club.get('Is the club organiser address the same as the club location address that you previously entered?', 'no').lower().strip() == 'yes') else {
-                                    '@type': 'PostalAddress',
-                                    'streetAddress': clean_string(club.get('Organiser street address')),
-                                    'addressLocality': clean_string(club.get('Organiser locality')),
-                                    'addressRegion': clean_string(club.get('Organiser region')),
-                                    'addressCountry': 'GB',
-                                    'postalCode': clean_string(club.get('Organiser post code')),
-                                },
-                            },
                             'activity': [
                                 {
                                     '@type': 'Concept',
@@ -197,9 +112,8 @@ def main():
                                     'prefLabel': preflabel,
                                     'inScheme': 'https://openactive.io/activity-list'
                                 }
-                                for preflabel in list_from_string(club.get('Activity options'), ',')
+                                for preflabel in list_from_string(club.get('Activity options', ''), ',')
                             ],
-                            'accessibilityInformation': clean_string(club.get('Accessibility description')),
                             'accessibilitySupport': [
                                 {
                                     'type': 'Concept', # Unlike 'activity', this does not use '@type', is this okay?
@@ -207,8 +121,96 @@ def main():
                                     'prefLabel': preflabel,
                                     'inScheme': 'https://openactive.io/accessibility-support'
                                 }
-                                for preflabel in list_from_string(club.get('Accessibility support'), ',')
+                                for preflabel in list_from_string(club.get('Accessibility support', ''), ',')
                             ],
+                            'accessibilityInformation': club.get('Accessibility description', ''),
+                            'location': {
+                                '@type': 'Place',
+                                '@id': f'{URL_ID_BASE}/{item_id}-loc',
+                                'identifier': f'{item_id}-loc',
+                                'name': club.get('Location common name', ''),
+                                'description': club.get('Location description', ''),
+                                'address': {
+                                    '@type': 'PostalAddress',
+                                    'streetAddress': club.get('Location street address', ''),
+                                    'addressLocality': club.get('Location locality', ''),
+                                    'addressRegion': club.get('Location region', ''),
+                                    'addressCountry': 'GB',
+                                    'postalCode': club.get('Location post code', ''),
+                                },
+                                'geo': {
+                                    '@type': 'GeoCoordinates',
+                                    'latitude': round(float(club.get('Location latitude')), NUM_DECIMAL_PLACES_COORDS) if club.get('Location latitude', '') else None,
+                                    'longitude': round(float(club.get('Location longitude')), NUM_DECIMAL_PLACES_COORDS) if club.get('Location longitude', '') else None,
+                                },
+                                'telephone': club.get('Location telephone', ''),
+                                'email':
+                                    club.get('Email address', '') if (club.get('Location email', '').lower() == 'same as the primary contact email for this form')
+                                    else club.get('Location email', ''),
+                                'url': club.get('Location main web address', ''),
+                                'image': [
+                                    {
+                                        '@type': 'ImageObject',
+                                        'url': image_url,
+                                        # 'width': 0,
+                                        # 'height': 0,
+                                    }
+                                    for image_url in list_from_string(club.get('Location image web addresses', ''), '\n')
+                                ],
+                                'amenityFeature': [
+                                    {
+                                        '@type': 'LocationFeatureSpecification',
+                                        'name': amenity_feature,
+                                        'value': True,
+                                    }
+                                    for amenity_feature in list_from_string(club.get('Location amenity features', ''), '\n')
+                                ],
+                            },
+                            'organizer': {
+                                '@type': 'Organization',
+                                '@id': f'{URL_ID_BASE}/{item_id}-org',
+                                'identifier': f'{item_id}-org',
+                                'name': club.get('Organiser common name', ''),
+                                'legalName': club.get('Organiser legal name', ''),
+                                'description': club.get('Organiser description', ''),
+                                'address':
+                                    {
+                                        '@type': 'PostalAddress',
+                                        'streetAddress': club.get('Location street address', ''),
+                                        'addressLocality': club.get('Location locality', ''),
+                                        'addressRegion': club.get('Location region', ''),
+                                        'addressCountry': 'GB',
+                                        'postalCode': club.get('Location post code', ''),
+                                    } if (club.get('Organiser physical address', '').lower() == 'same as the location physical address')
+                                    else {
+                                        '@type': 'PostalAddress',
+                                        'streetAddress': club.get('Organiser street address', ''),
+                                        'addressLocality': club.get('Organiser locality', ''),
+                                        'addressRegion': club.get('Organiser region', ''),
+                                        'addressCountry': 'GB',
+                                        'postalCode': club.get('Organiser post code', ''),
+                                    },
+                                'telephone':
+                                    club.get('Location telephone', '') if (club.get('Organiser telephone', '').lower() == 'same as the location telephone')
+                                    else club.get('Organiser telephone', ''),
+                                'email':
+                                    club.get('Email address', '') if (club.get('Organiser email', '').lower() == 'same as the primary contact email for this form')
+                                    else club.get('Email address', '') if ((club.get('Organiser email', '').lower() == 'same as the location email') and (club.get('Location email', '').lower() == 'same as the primary contact email for this form'))
+                                    else club.get('Location email', '') if (club.get('Organiser email', '').lower() == 'same as the location email')
+                                    else club.get('Organiser email', ''),
+                                'url':
+                                    club.get('Location main web address', '') if (club.get('Organiser main web address', '').lower() == 'same as the location main web address')
+                                    else club.get('Organiser main web address', ''),
+                                'logo':
+                                    {
+                                        '@type': 'ImageObject',
+                                        'url': club.get('Organiser logo web address', ''),
+                                        # 'width': 0,
+                                        # 'height': 0,
+                                    } if club.get('Organiser logo web address', '')
+                                    else {},
+                                'sameAs': list_from_string(club.get('Organiser social media web addresses', ''), '\n'),
+                            },
                         }
                     })
 
