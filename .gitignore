@@ -2,8 +2,12 @@
 node_modules/
 virt/
 
-# Mac Finder
-.DS_Store
-
 # Private
 volume-1/
+volume-1
+
+# Tests
+test*/
+
+# Mac Finder
+.DS_Store
